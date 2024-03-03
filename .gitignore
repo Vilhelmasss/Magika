@@ -4,3 +4,5 @@
 *.log
 Logs/AssetImportWorker0.log
 *.log
+Temp/workerlic
+Library/ArtifactDB
