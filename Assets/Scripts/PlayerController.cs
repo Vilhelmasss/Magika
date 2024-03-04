@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -24,6 +25,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+
         animator = animatorCharacterModel.GetComponent<Animator>();
         rb = gameObject.GetComponent<Rigidbody>();
     }
@@ -35,9 +37,6 @@ public class PlayerController : MonoBehaviour
         AnimatorController();
         MovementInput();
         JumpHandler();
-
-
-        // moveDirection = new Vector3(inputHorizontal * moveSpeed, , inputVertical * moveSpeed);
     }
 
     void AnimatorController()
@@ -50,25 +49,67 @@ public class PlayerController : MonoBehaviour
         switch (currentState)
         {
             case PlayerState.Idle:
-                SetAnimTrigger("Idle");
+                GetMovementTrigger();
                 MovementInput();
                 break;
 
             case PlayerState.Running:
-                SetAnimTrigger("RunningForward");
+                GetMovementTrigger();
                 MovementInput();
                 break;
+
+            case PlayerState.Jumping:
+                AnimTrigger("Jumping");
+                break;
+
+            case PlayerState.Channeling:
+                break;
+
+            case PlayerState.Dead:
+                break;
+
         }
 
     }
 
-    void SetAnimTrigger(string trigger)
+    void SetAnimInputs()
+    {
+
+    }
+
+
+
+    void GetMovementTrigger()
+    {
+        if (inputVertical > 0.5f && inputHorizontal == 0f)
+            AnimTrigger("RunningN");
+        else if (inputVertical < -0.5f && inputHorizontal == 0f)
+            AnimTrigger("RunningS");
+        else if (inputVertical > 0.5f && inputHorizontal > 0.5f)
+            AnimTrigger("RunningNE");
+        else if (inputVertical > 0.5f && inputHorizontal > 0.5f)
+            AnimTrigger("RunningNW");
+        else if (inputHorizontal < -0.5f && inputVertical < 0.5f && inputVertical > -0.5f)
+            AnimTrigger("RunningW");
+        else if (inputHorizontal > 0.5f && inputVertical < 0.5f && inputVertical > -0.5f)
+            AnimTrigger("RunningE");
+        else if (inputVertical < -0.5f && inputHorizontal > 0.5f)
+            AnimTrigger("RunningSE");
+        else if (inputVertical < -0.5f && inputHorizontal > 0.5f)
+            AnimTrigger("RunningSW");
+        else
+            AnimTrigger("Idle");
+    }
+
+    void AnimTrigger(string trigger)
     {
         if (!animator.GetCurrentAnimatorStateInfo(0).IsName(trigger))
             animator.SetTrigger(trigger);
     }
+
     void MovementInput()
     {
+        // foreach(string enumName in System.Enum.GetNames())
         inputHorizontal = Input.GetAxis("Horizontal");
         inputVertical = Input.GetAxis("Vertical");
         inputDirection = transform.TransformDirection(new Vector3(inputHorizontal, 0f, inputVertical));
@@ -77,8 +118,14 @@ public class PlayerController : MonoBehaviour
             currentState = PlayerState.Running;
         else
             currentState = PlayerState.Idle;
+    }
+
+    void SetRunningAnimInputs()
+    {
 
     }
+
+    // void RunningDirectionAnimationTrigger()
 
     void JumpHandler()
     {
@@ -86,7 +133,6 @@ public class PlayerController : MonoBehaviour
             return;
 
         rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-        animator.SetTrigger("Jumping");
         currentState = PlayerState.Jumping;
 
 
@@ -97,6 +143,8 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector3(inputDirection.x * moveSpeed, rb.velocity.y, inputDirection.z * moveSpeed);
         if (Input.GetAxis("Mouse X") > 0) transform.Rotate((Vector3.up) * mouseRotSpeed);
         if (Input.GetAxis("Mouse X") < 0) transform.Rotate((Vector3.up) * -mouseRotSpeed);
+        // if (Input.GetAxis("Mouse Y") > 0) transform.Rotate((Vector3.up) * mouseRotSpeed);
+        // if (Input.GetAxis("Mouse Y") < 0) transform.Rotate((Vector3.up) * -mouseRotSpeed);
 
     }
 }
