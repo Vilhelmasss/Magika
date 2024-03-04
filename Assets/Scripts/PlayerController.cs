@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     private float inputHorizontal;
     private float inputVertical;
     private Rigidbody rb;
-
+    public Vector3 testVector;
     private Vector3 inputDirection = Vector3.zero;
     [SerializeField] private GameObject animatorCharacterModel;
     [SerializeField] private Animator animator;
@@ -25,7 +25,6 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-
         animator = animatorCharacterModel.GetComponent<Animator>();
         rb = gameObject.GetComponent<Rigidbody>();
     }
@@ -33,33 +32,32 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        testVector = groundCheckObject.transform.position;
+
         StateManager();
-        AnimatorController();
         MovementInput();
         JumpHandler();
     }
 
-    void AnimatorController()
-    {
-
-
-    }
     void StateManager()
     {
         switch (currentState)
         {
             case PlayerState.Idle:
                 GetMovementTrigger();
+                CheckGround();
                 MovementInput();
                 break;
 
             case PlayerState.Running:
                 GetMovementTrigger();
+                CheckGround();
                 MovementInput();
                 break;
 
             case PlayerState.Jumping:
-                AnimTrigger("Jumping");
+                GetJumpingTrigger();
+                CheckGround();
                 break;
 
             case PlayerState.Channeling:
@@ -69,36 +67,55 @@ public class PlayerController : MonoBehaviour
                 break;
 
         }
-
     }
 
-    void SetAnimInputs()
+    void CheckGround()
     {
+        Collider[] hitColliders = Physics.OverlapSphere(testVector, 0.1f, ~7);
 
+        if (hitColliders.Length > 0)
+        {
+            isTouchingGround = true;
+            if (currentState == PlayerState.Jumping)
+                ChangeState(PlayerState.Idle);
+        }
+        else
+        {
+            isTouchingGround = false;
+            ChangeState(PlayerState.Jumping);
+        }
     }
-
-
 
     void GetMovementTrigger()
     {
-        if (inputVertical > 0.5f && inputHorizontal == 0f)
-            AnimTrigger("RunningN");
-        else if (inputVertical < -0.5f && inputHorizontal == 0f)
-            AnimTrigger("RunningS");
-        else if (inputVertical > 0.5f && inputHorizontal > 0.5f)
-            AnimTrigger("RunningNE");
-        else if (inputVertical > 0.5f && inputHorizontal > 0.5f)
-            AnimTrigger("RunningNW");
-        else if (inputHorizontal < -0.5f && inputVertical < 0.5f && inputVertical > -0.5f)
-            AnimTrigger("RunningW");
-        else if (inputHorizontal > 0.5f && inputVertical < 0.5f && inputVertical > -0.5f)
-            AnimTrigger("RunningE");
-        else if (inputVertical < -0.5f && inputHorizontal > 0.5f)
-            AnimTrigger("RunningSE");
-        else if (inputVertical < -0.5f && inputHorizontal > 0.5f)
-            AnimTrigger("RunningSW");
+        if (inputVertical > 0.01f && inputHorizontal == 0f)
+            AnimTrigger("RunningForwards");
+        else if (inputVertical < -0.01f && inputHorizontal == 0f)
+            AnimTrigger("RunningBackwards");
+        else if (inputVertical > 0.01f && inputHorizontal > 0.01f)
+            AnimTrigger("RunningForwardsRight");
+        else if (inputVertical > 0.01f && inputHorizontal < -0.01f)
+            AnimTrigger("RunningForwardsLeft");
+        else if (inputHorizontal < -0.01f && inputVertical < 0.01f && inputVertical > -0.01f)
+            AnimTrigger("RunningLeft");
+        else if (inputHorizontal > 0.01f && inputVertical < 0.01f && inputVertical > -0.01f)
+            AnimTrigger("RunningRight");
+        else if (inputVertical < -0.01f && inputHorizontal > 0.01f)
+            AnimTrigger("RunningBackwardsRight");
+        else if (inputVertical < -0.01f && inputHorizontal < -0.01f)
+            AnimTrigger("RunningBackwardsLeft");
         else
             AnimTrigger("Idle");
+    }
+
+    void GetJumpingTrigger()
+    {
+        AnimTrigger(currentState.ToString());
+    }
+
+    void ChangeState(PlayerState newState)
+    {
+        currentState = newState;
     }
 
     void AnimTrigger(string trigger)
@@ -109,23 +126,18 @@ public class PlayerController : MonoBehaviour
 
     void MovementInput()
     {
-        // foreach(string enumName in System.Enum.GetNames())
-        inputHorizontal = Input.GetAxis("Horizontal");
-        inputVertical = Input.GetAxis("Vertical");
-        inputDirection = transform.TransformDirection(new Vector3(inputHorizontal, 0f, inputVertical));
-
-        if (inputHorizontal > 0f || inputVertical > 0f)
-            currentState = PlayerState.Running;
-        else
-            currentState = PlayerState.Idle;
+        if (currentState == PlayerState.Idle || currentState == PlayerState.Running)
+        {
+            inputHorizontal = Input.GetAxis("Horizontal");
+            inputVertical = Input.GetAxis("Vertical");
+            inputDirection = transform.TransformDirection(new Vector3(inputHorizontal, 0f, inputVertical));
+            
+            if (inputHorizontal != 0f && inputVertical != 0f)
+                ChangeState(PlayerState.Running);
+            else
+                ChangeState(PlayerState.Idle);
+        }
     }
-
-    void SetRunningAnimInputs()
-    {
-
-    }
-
-    // void RunningDirectionAnimationTrigger()
 
     void JumpHandler()
     {
@@ -133,9 +145,7 @@ public class PlayerController : MonoBehaviour
             return;
 
         rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-        currentState = PlayerState.Jumping;
-
-
+        ChangeState(PlayerState.Jumping);
     }
 
     void FixedUpdate()
@@ -143,8 +153,5 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector3(inputDirection.x * moveSpeed, rb.velocity.y, inputDirection.z * moveSpeed);
         if (Input.GetAxis("Mouse X") > 0) transform.Rotate((Vector3.up) * mouseRotSpeed);
         if (Input.GetAxis("Mouse X") < 0) transform.Rotate((Vector3.up) * -mouseRotSpeed);
-        // if (Input.GetAxis("Mouse Y") > 0) transform.Rotate((Vector3.up) * mouseRotSpeed);
-        // if (Input.GetAxis("Mouse Y") < 0) transform.Rotate((Vector3.up) * -mouseRotSpeed);
-
     }
 }
