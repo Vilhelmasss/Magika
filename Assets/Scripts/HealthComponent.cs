@@ -5,7 +5,7 @@ using UnityEngine;
 public class HealthComponent : MonoBehaviour
 {
     [SerializeField] private float maxHealth = 50f;
-    private float currentHealth;
+    [SerializeField] private float currentHealth;
 
     private void Awake()
     {

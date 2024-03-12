@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f122c9c78648fd49bc8c944ab7d5f3c, type: 3}
   m_Name: BlackSpiritBomb
   m_EditorClassIdentifier: 
-  DamageAmmount: 999
-  ManaCost: 50
+  DamageAmmount: 90
+  ManaCost: 2
   HealthCost: 0
   LifeTime: 10
   Speed: 10
