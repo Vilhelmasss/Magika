@@ -51,40 +51,40 @@ public class PlayerMagicSystem : MonoBehaviour
         bool isSpellCastHeldDown = Input.GetMouseButtonDown(0);
         bool hasEnoughMana = currentMana - spellToCast.SpellToCast.ManaCost >= 0f;
 
-        // if(!castingMagic && isSpellCastHeldDown && hasEnoughMana)
-        // {
-        //     castingMagic = true;
-        //     currentMana -= spellToCast.SpellToCast.ManaCost;
-        //     currentCastTimer=0;
-        //     currentManaRechargeTimer=0;
-        //     castSpell();
-        //     print("casting");
-        // }
-
-        if (!castingMagic && isSpellCastHeldDown && hasEnoughMana)
+        if(!castingMagic && isSpellCastHeldDown && hasEnoughMana)
         {
-            castingCounter = 0;
-            castingCounter += Time.deltaTime;
-
-            if (castingCounter < 30f)
-            {
-                castingMagic = true;
-                currentMana -= spellToCast.SpellToCast.ManaCost;
-                currentCastTimer = 0;
-                currentManaRechargeTimer = 0;
-                castSpell();
-                print("casting");
-            }
-            else
-            {
-                Debug.Log("Casting failed");
-                currentMana -= spellToCast.SpellToCast.ManaCost;
-                currentCastTimer = 0;
-                currentManaRechargeTimer = 0;
-
-            }
-
+            castingMagic = true;
+            currentMana -= spellToCast.SpellToCast.ManaCost;
+            currentCastTimer=0;
+            currentManaRechargeTimer=0;
+            castSpell();
+            print("casting");
         }
+
+        // if (!castingMagic && isSpellCastHeldDown && hasEnoughMana)
+        // {
+        //     castingCounter = 0;
+        //     castingCounter += Time.deltaTime;
+
+        //     if (castingCounter < 30f)
+        //     {
+        //         castingMagic = true;
+        //         currentMana -= spellToCast.SpellToCast.ManaCost;
+        //         currentCastTimer = 0;
+        //         currentManaRechargeTimer = 0;
+        //         castSpell();
+        //         print("casting");
+        //     }
+        //     else
+        //     {
+        //         Debug.Log("Casting failed");
+        //         currentMana -= spellToCast.SpellToCast.ManaCost;
+        //         currentCastTimer = 0;
+        //         currentManaRechargeTimer = 0;
+
+        //     }
+
+        // }
 
         if (castingMagic)
         {
