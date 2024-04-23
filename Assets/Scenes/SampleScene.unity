@@ -3024,6 +3024,7 @@ MonoBehaviour:
   RMBPerlinNoise: {fileID: 1903504926}
   RMBCooldownNumber: {fileID: 1186540432}
   RMBWheelChargeUp: {fileID: 1610828921}
+  vfxGraph: {fileID: 1103453236736923443, guid: d4c66e8b9249a124dadb3b05bd308313, type: 3}
 --- !u!114 &1252221063
 MonoBehaviour:
   m_ObjectHideFlags: 0
