@@ -40,7 +40,6 @@ public class PlayerMagicSystem : MonoBehaviour
     private VisualEffect activeEffectInstance;
 
 
-
     // Start is called before the first frame update
     void Awake()
     {
@@ -146,7 +145,6 @@ public class PlayerMagicSystem : MonoBehaviour
 
                 // to instantiate charge spell animation
                 HandleEffectInstantiating();
-
                 foreach (var col in hitColliders)
                 {
                     if (col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
@@ -248,5 +246,4 @@ public class PlayerMagicSystem : MonoBehaviour
                 activeEffectInstance = null;
             }
     }
-
 }
