@@ -10,18 +10,22 @@ public class PlayerMagicSystem : MonoBehaviour
 {
     [SerializeField] private Spell spellToCast;
     [SerializeField] private float maxMana = 100f;
-    [SerializeField] private float currentMana;
+    [SerializeField] private float currentMana = 0f;
     [SerializeField] private float manaRechargeRate = 2f;
     [SerializeField] private float timeWaitForRecharge = 1f;
     [SerializeField] private GameObject manaBar;
     [SerializeField] private GameObject manaBarNumber;
-    [SerializeField] private float timeBetweenCast = 0.25f;
-    private float currentManaRechargeTimer;
-    private float currentCastTimer;
-    private float castingCounter;
     private string currentCastedAbility = "";
     public TextMeshProUGUI manaTextMesh;
     [SerializeField] private Transform castPoint;
+    [SerializeField] private float maxChargeTime;
+    [SerializeField] private float currChargeTime;
+
+    [Header("LMB")]
+    private float LMBCooldownCurr = 0f;
+    [SerializeField] private float LMBCooldownMax;
+    [SerializeField] private GameObject LMBPerlinNoise;
+    [SerializeField] private GameObject LMBCooldownNumber;
 
     [Header("RMB")]
     private float RMBCooldownCurr = 0f;
@@ -29,8 +33,7 @@ public class PlayerMagicSystem : MonoBehaviour
     [SerializeField] private GameObject RMBPerlinNoise;
     [SerializeField] private GameObject RMBCooldownNumber;
     [SerializeField] private GameObject RMBWheelChargeUp;
-    [SerializeField] private float maxChargeTime;
-    [SerializeField] private float currChargeTime;
+
     private PlayerController playerController;
     // Start is called before the first frame update
     void Awake()
@@ -48,7 +51,10 @@ public class PlayerMagicSystem : MonoBehaviour
     {
         ChargeMana();
         AdjustManaUI();
+
+        HandleLMBUI();
         HandleLMBSpell();
+
         HandleRMBUI();
         HandleRMBSpell();
     }
@@ -74,17 +80,22 @@ public class PlayerMagicSystem : MonoBehaviour
 
         bool hasEnoughMana = currentMana - spellToCast.SpellToCast.ManaCost >= 0f;
 
-        if (Input.GetKeyDown(KeyCode.Mouse0) && hasEnoughMana)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && hasEnoughMana && LMBCooldownCurr < 0)
         {
             currentCastedAbility = "LMB";
             currentMana -= spellToCast.SpellToCast.ManaCost;
-            currentCastTimer = 0;
-            currentManaRechargeTimer = 0;
             castSpell();
             currentCastedAbility = "";
+            LMBCooldownCurr = LMBCooldownMax;
         }
 
         return true;
+    }
+
+
+    private void ReturnState()
+    {
+        PlayerController.Instance.currentState = PlayerController.PlayerState.Idle;
     }
 
     private bool HandleRMBSpell()
@@ -140,6 +151,23 @@ public class PlayerMagicSystem : MonoBehaviour
 
     // --------------------------------------- UI ---------------------------------------
 
+    private void HandleLMBUI()
+    {
+        if (currentCastedAbility != "LMB")
+            LMBCooldownCurr -= Time.deltaTime;
+
+        if (LMBCooldownCurr > 0)
+        {
+            LMBCooldownNumber.SetActive(true);
+            LMBCooldownNumber.GetComponent<TextMeshProUGUI>().text = LMBCooldownCurr.ToString("F1");
+        }
+        else
+            LMBCooldownNumber.SetActive(false);
+
+        LMBPerlinNoise.GetComponent<Image>().fillAmount = LMBCooldownCurr / LMBCooldownMax;
+    }
+
+
     private void HandleRMBUI()
     {
         if (currentCastedAbility != "RMB")
@@ -157,6 +185,4 @@ public class PlayerMagicSystem : MonoBehaviour
 
         RMBPerlinNoise.GetComponent<Image>().fillAmount = RMBCooldownCurr / RMBCooldownMax;
     }
-
-
 }
