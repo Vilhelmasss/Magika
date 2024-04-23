@@ -38,8 +38,6 @@ public class PlayerController : MonoBehaviour
         testVector = groundCheckObject.transform.position;
 
         StateManager();
-        MovementInput();
-        JumpHandler();
     }
 
     void StateManager()
@@ -50,12 +48,14 @@ public class PlayerController : MonoBehaviour
                 GetMovementTrigger();
                 CheckGround();
                 MovementInput();
+                JumpHandler();
                 break;
 
             case PlayerState.Running:
                 GetMovementTrigger();
                 CheckGround();
                 MovementInput();
+                JumpHandler();
                 break;
 
             case PlayerState.Jumping:
@@ -64,10 +64,8 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.ChannelStand:
-
                 break;
             case PlayerState.ChannelWalk:
-                Debug.Log($"currentState: {currentState}");
                 GetMovementTrigger();
                 MovementInput();
                 break;
@@ -152,7 +150,6 @@ public class PlayerController : MonoBehaviour
     {
         if (!Input.GetKeyDown(KeyCode.Space))
             return;
-        AnimTrigger("Jumping");
         rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
         ChangeState(PlayerState.Jumping);
     }
