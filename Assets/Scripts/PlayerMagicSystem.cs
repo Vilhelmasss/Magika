@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMagicSystem : MonoBehaviour
 {
@@ -12,19 +13,24 @@ public class PlayerMagicSystem : MonoBehaviour
     [SerializeField] private float currentMana;
     [SerializeField] private float manaRechargeRate = 2f;
     [SerializeField] private float timeWaitForRecharge = 1f;
-    private float currentManaRechargeTimer;
+    [SerializeField] private GameObject manaBar;
+    [SerializeField] private GameObject manaBarNumber;
     [SerializeField] private float timeBetweenCast = 0.25f;
+    private float currentManaRechargeTimer;
     private float currentCastTimer;
     private float castingCounter;
+    private string currentCastedAbility = "";
     public TextMeshProUGUI manaTextMesh;
-    public TextMeshProUGUI chargeUpState;
-    public TextMeshProUGUI lastCharge;
-    [SerializeField] private float maxChargeTimeLab;
-    [SerializeField] private float currChargeTimeLab;
-
     [SerializeField] private Transform castPoint;
 
-    private bool castingMagic = false;
+    [Header("RMB")]
+    private float RMBCooldownCurr = 0f;
+    [SerializeField] private float RMBCooldownMax;
+    [SerializeField] private GameObject RMBPerlinNoise;
+    [SerializeField] private GameObject RMBCooldownNumber;
+    [SerializeField] private GameObject RMBWheelChargeUp;
+    [SerializeField] private float maxChargeTime;
+    [SerializeField] private float currChargeTime;
     private PlayerController playerController;
     // Start is called before the first frame update
     void Awake()
@@ -32,125 +38,125 @@ public class PlayerMagicSystem : MonoBehaviour
         playerController = new PlayerController();
     }
 
-    // Update is called once per frame
-    private void OnEnable()
-    {
-        // playerController.Enable();
-
-    }
-
     void AdjustManaUI()
     {
-        manaTextMesh.text = currentMana.ToString("F1") + " " + maxMana.ToString();
+        manaBar.GetComponent<Image>().fillAmount = currentMana / maxMana;
+        manaBarNumber.GetComponent<TextMeshProUGUI>().text = currentMana.ToString("F0");
     }
 
     private void Update()
     {
+        ChargeMana();
         AdjustManaUI();
-        HandleChargingSpell();
-        bool isSpellCastHeldDown = Input.GetMouseButtonDown(0);
+        HandleLMBSpell();
+        HandleRMBUI();
+        HandleRMBSpell();
+    }
+
+    private void ChargeMana()
+    {
+        if (PlayerController.Instance.currentState == PlayerController.PlayerState.ChannelWalk ||
+            PlayerController.Instance.currentState == PlayerController.PlayerState.ChannelStand)
+            return;
+
+        if (currentMana < maxMana)
+        {
+            currentMana += Time.deltaTime * manaRechargeRate;
+        }
+    }
+
+    private bool HandleLMBSpell()
+    {
+        if (PlayerController.Instance.currentState != PlayerController.PlayerState.Idle &&
+            PlayerController.Instance.currentState != PlayerController.PlayerState.Running &&
+            PlayerController.Instance.currentState != PlayerController.PlayerState.Jumping)
+            return false;
+
         bool hasEnoughMana = currentMana - spellToCast.SpellToCast.ManaCost >= 0f;
 
-        if(!castingMagic && isSpellCastHeldDown && hasEnoughMana)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && hasEnoughMana)
         {
-            castingMagic = true;
+            currentCastedAbility = "LMB";
             currentMana -= spellToCast.SpellToCast.ManaCost;
-            currentCastTimer=0;
-            currentManaRechargeTimer=0;
+            currentCastTimer = 0;
+            currentManaRechargeTimer = 0;
             castSpell();
-            print("casting");
+            currentCastedAbility = "";
         }
 
-        // if (!castingMagic && isSpellCastHeldDown && hasEnoughMana)
-        // {
-        //     castingCounter = 0;
-        //     castingCounter += Time.deltaTime;
-
-        //     if (castingCounter < 30f)
-        //     {
-        //         castingMagic = true;
-        //         currentMana -= spellToCast.SpellToCast.ManaCost;
-        //         currentCastTimer = 0;
-        //         currentManaRechargeTimer = 0;
-        //         castSpell();
-        //         print("casting");
-        //     }
-        //     else
-        //     {
-        //         Debug.Log("Casting failed");
-        //         currentMana -= spellToCast.SpellToCast.ManaCost;
-        //         currentCastTimer = 0;
-        //         currentManaRechargeTimer = 0;
-
-        //     }
-
-        // }
-
-        if (castingMagic)
-        {
-            currentCastTimer += Time.deltaTime;
-            if (currentCastTimer > timeBetweenCast)
-            {
-                castingMagic = false;
-            }
-        }
-        if (currentMana < maxMana && !castingMagic && !isSpellCastHeldDown)
-        {
-            currentManaRechargeTimer += Time.deltaTime;
-            if (currentManaRechargeTimer > timeWaitForRecharge)
-            {
-                currentMana += manaRechargeRate * Time.deltaTime;
-                if (currentMana > maxMana)
-                {
-                    currentMana = maxMana;
-                }
-            }
-
-        }
-
+        return true;
     }
-    private bool HandleChargingSpell()
+
+    private bool HandleRMBSpell()
     {
-        Debug.Log("Got here");
-        chargeUpState.text = currChargeTimeLab.ToString("F1");
+        if ((PlayerController.Instance.currentState == PlayerController.PlayerState.ChannelWalk && currentCastedAbility != "RMB") ||
+             PlayerController.Instance.currentState == PlayerController.PlayerState.ChannelStand || RMBCooldownCurr > 0)
+            return false;
+
+        float manaDrainPerSecond = 3f;
+
+
         if (Input.GetKey(KeyCode.Mouse1))
         {
-            currentMana -= Time.deltaTime * 3f;
-            Debug.Log("Lul");
-            currChargeTimeLab += Time.deltaTime;
-            if (currChargeTimeLab > maxChargeTimeLab)
+            PlayerController.Instance.channelWalkingMultiplier = 0.3f;
+            currentCastedAbility = "RMB";
+            PlayerController.Instance.currentState = PlayerController.PlayerState.ChannelWalk;
+            currentMana -= Time.deltaTime * manaDrainPerSecond;
+            currChargeTime += Time.deltaTime;
+
+            if (currChargeTime > maxChargeTime)
             {
-                lastCharge.text = $"Overtime: {maxChargeTimeLab.ToString("F1")}";
                 gameObject.GetComponent<HealthComponent>().TakeDamage(50f);
-                currChargeTimeLab = 0f;
-            }
-            else
-            {
+                PlayerController.Instance.currentState = PlayerController.PlayerState.Idle;
+                RMBCooldownCurr = RMBCooldownMax;
+                currentCastedAbility = "";
+                currChargeTime = 0f;
+                currentMana += manaRechargeRate * 10f;
             }
         }
         else
         {
-            if (currChargeTimeLab > 0)
+            if (currChargeTime > 0)
             {
-                Collider[] hitColliders = Physics.OverlapSphere(transform.position, currChargeTimeLab * 15f);
+                Collider[] hitColliders = Physics.OverlapSphere(transform.position, currChargeTime * 15f);
                 foreach (var col in hitColliders)
                 {
-                    if (col.gameObject.layer == 6)
-                    {
-                        Debug.Log("Here");
-                        col.GetComponent<HealthComponent>().TakeDamage(currChargeTimeLab * 20f);
-                    }
+                    if (col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                        col.GetComponent<HealthComponent>().TakeDamage(currChargeTime * 20f);
                 }
-                lastCharge.text = $"Successful: {currChargeTimeLab.ToString("F1")}";
+                PlayerController.Instance.currentState = PlayerController.PlayerState.Idle;
+                RMBCooldownCurr = RMBCooldownMax;
+                currentCastedAbility = "";
             }
-            currChargeTimeLab = 0f;
+            currChargeTime = 0f;
         }
-        return false;
+        return true;
     }
-
 
     void castSpell()
     {
         Instantiate(spellToCast, castPoint.position, castPoint.rotation);
     }
+
+    // --------------------------------------- UI ---------------------------------------
+
+    private void HandleRMBUI()
+    {
+        if (currentCastedAbility != "RMB")
+            RMBCooldownCurr -= Time.deltaTime;
+
+        RMBWheelChargeUp.GetComponent<Image>().fillAmount = currChargeTime / maxChargeTime;
+
+        if (RMBCooldownCurr > 0)
+        {
+            RMBCooldownNumber.SetActive(true);
+            RMBCooldownNumber.GetComponent<TextMeshProUGUI>().text = RMBCooldownCurr.ToString("F1");
+        }
+        else
+            RMBCooldownNumber.SetActive(false);
+
+        RMBPerlinNoise.GetComponent<Image>().fillAmount = RMBCooldownCurr / RMBCooldownMax;
+    }
+
+
 }
