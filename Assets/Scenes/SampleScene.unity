@@ -1015,7 +1015,7 @@ MonoBehaviour:
   CameraDistance: 5
   CameraCollisionFilter:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   IgnoreTag: 
   CameraRadius: 0.2
   DampingIntoCollision: 0
@@ -2986,8 +2986,6 @@ MonoBehaviour:
   channelWalkingMultiplier: 0
   testVector: {x: 0, y: 0, z: 0}
   animatorCharacterModel: {fileID: 1664903094}
-  manaBar: {fileID: 0}
-  manaBarNumber: {fileID: 0}
   animator: {fileID: 0}
   moveSpeed: 5
   jumpForce: 10
@@ -3024,6 +3022,7 @@ MonoBehaviour:
   RMBWheelChargeUp: {fileID: 1610828921}
   maxChargeTime: 3
   currChargeTime: 0
+  vfxGraph: {fileID: 1103453236736923443, guid: d4c66e8b9249a124dadb3b05bd308313, type: 3}
 --- !u!114 &1252221063
 MonoBehaviour:
   m_ObjectHideFlags: 0

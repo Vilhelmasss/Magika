@@ -5,6 +5,8 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.VFX;
+using Unity.Mathematics;
 
 public class PlayerMagicSystem : MonoBehaviour
 {
@@ -32,6 +34,11 @@ public class PlayerMagicSystem : MonoBehaviour
     [SerializeField] private float maxChargeTime;
     [SerializeField] private float currChargeTime;
     private PlayerController playerController;
+    public VisualEffect vfxGraph;
+    private VisualEffect activeEffectInstance;
+
+
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -51,6 +58,7 @@ public class PlayerMagicSystem : MonoBehaviour
         HandleLMBSpell();
         HandleRMBUI();
         HandleRMBSpell();
+        HandleSpellRotation();
     }
 
     private void ChargeMana()
@@ -104,6 +112,9 @@ public class PlayerMagicSystem : MonoBehaviour
             currentMana -= Time.deltaTime * manaDrainPerSecond;
             currChargeTime += Time.deltaTime;
 
+            // to instantiate charge spell animation
+            HandleEffectInstantiating();
+
             if (currChargeTime > maxChargeTime)
             {
                 gameObject.GetComponent<HealthComponent>().TakeDamage(50f);
@@ -112,6 +123,9 @@ public class PlayerMagicSystem : MonoBehaviour
                 currentCastedAbility = "";
                 currChargeTime = 0f;
                 currentMana += manaRechargeRate * 10f;
+
+                // to destroy the animation instance
+                HandleEffectRemoval();
             }
         }
         else
@@ -119,6 +133,10 @@ public class PlayerMagicSystem : MonoBehaviour
             if (currChargeTime > 0)
             {
                 Collider[] hitColliders = Physics.OverlapSphere(transform.position, currChargeTime * 15f);
+
+                // to instantiate charge spell animation
+                HandleEffectInstantiating();
+
                 foreach (var col in hitColliders)
                 {
                     if (col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
@@ -127,6 +145,10 @@ public class PlayerMagicSystem : MonoBehaviour
                 PlayerController.Instance.currentState = PlayerController.PlayerState.Idle;
                 RMBCooldownCurr = RMBCooldownMax;
                 currentCastedAbility = "";
+
+                // to destroy the animation instance
+                HandleEffectRemoval();
+                
             }
             currChargeTime = 0f;
         }
@@ -158,5 +180,46 @@ public class PlayerMagicSystem : MonoBehaviour
         RMBPerlinNoise.GetComponent<Image>().fillAmount = RMBCooldownCurr / RMBCooldownMax;
     }
 
+
+    // --------------------------------------- Animations ---------------------------------------
+
+    void UpdateEffectSize()
+    {
+        float normalizedCharge = Mathf.Clamp01(currChargeTime/maxChargeTime);
+        //float size = Mathf.Lerp(0.1f, 35f, normalizedCharge);
+        float size = 30f*currChargeTime;
+        vfxGraph.SetFloat("EffectSize", size);   
+        vfxGraph.SetFloat("LifeTime", currChargeTime); 
+
+    }
+
+    void HandleSpellRotation()
+    {
+        if(activeEffectInstance !=null)
+        {
+            activeEffectInstance.transform.rotation = Quaternion.identity;
+        }
+    }
+
+    // --------------------------------------- Misc ---------------------------------------
+
+    void HandleEffectInstantiating()
+    {
+        if(activeEffectInstance == null)
+            {
+                activeEffectInstance = Instantiate(vfxGraph, castPoint.position, quaternion.identity, castPoint);
+                activeEffectInstance.transform.localRotation = Quaternion.identity;
+            }
+            activeEffectInstance.SetFloat("EffectSize", 5f);
+            UpdateEffectSize();
+    }
+    void HandleEffectRemoval()
+    {
+        if(activeEffectInstance!=null)
+            {
+                Destroy(activeEffectInstance.gameObject);
+                activeEffectInstance = null;
+            }
+    }
 
 }
