@@ -6,8 +6,10 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public enum PlayerState { Idle, Running, Jumping, Channeling, Dead };
-    private PlayerState currentState = PlayerState.Idle;
+    public enum PlayerState { Idle, Running, Jumping, ChannelWalk, ChannelStand, Dead };
+    public PlayerState currentState = PlayerState.Idle;
+    public static PlayerController Instance { get; private set; }
+    public float channelWalkingMultiplier;
     private float inputHorizontal;
     private float inputVertical;
     private Rigidbody rb;
@@ -25,6 +27,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
         animator = animatorCharacterModel.GetComponent<Animator>();
         rb = gameObject.GetComponent<Rigidbody>();
     }
@@ -56,14 +59,20 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Jumping:
-                GetJumpingTrigger();
+                // GetJumpingTrigger();
                 CheckGround();
                 break;
 
-            case PlayerState.Channeling:
-                break;
+            case PlayerState.ChannelStand:
 
+                break;
+            case PlayerState.ChannelWalk:
+                Debug.Log($"currentState: {currentState}");
+                GetMovementTrigger();
+                MovementInput();
+                break;
             case PlayerState.Dead:
+
                 break;
 
         }
@@ -72,7 +81,7 @@ public class PlayerController : MonoBehaviour
     void CheckGround()
     {
         Collider[] hitColliders = Physics.OverlapSphere(testVector, 0.1f, ~7);
-
+        Debug.Log($"Colliders: {currentState}");
         if (hitColliders.Length > 0)
         {
             isTouchingGround = true;
@@ -126,32 +135,42 @@ public class PlayerController : MonoBehaviour
 
     void MovementInput()
     {
-        if (currentState == PlayerState.Idle || currentState == PlayerState.Running)
-        {
-            inputHorizontal = Input.GetAxis("Horizontal");
-            inputVertical = Input.GetAxis("Vertical");
-            inputDirection = transform.TransformDirection(new Vector3(inputHorizontal, 0f, inputVertical));
-            
-            if (inputHorizontal != 0f && inputVertical != 0f)
-                ChangeState(PlayerState.Running);
-            else
-                ChangeState(PlayerState.Idle);
-        }
+        if (currentState != PlayerState.ChannelWalk)
+            channelWalkingMultiplier = 1f;
+
+        inputHorizontal = Input.GetAxis("Horizontal");
+        inputVertical = Input.GetAxis("Vertical");
+        inputDirection = transform.TransformDirection(new Vector3(inputHorizontal, 0f, inputVertical));
+
+        if (inputHorizontal != 0f && inputVertical != 0f)
+            ChangeState(PlayerState.Running);
+        else
+            ChangeState(PlayerState.Idle);
     }
 
     void JumpHandler()
     {
         if (!Input.GetKeyDown(KeyCode.Space))
             return;
-
+        AnimTrigger("Jumping");
         rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
         ChangeState(PlayerState.Jumping);
     }
 
     void FixedUpdate()
     {
-        rb.velocity = new Vector3(inputDirection.x * moveSpeed, rb.velocity.y, inputDirection.z * moveSpeed);
-        if (Input.GetAxis("Mouse X") > 0) transform.Rotate((Vector3.up) * mouseRotSpeed);
-        if (Input.GetAxis("Mouse X") < 0) transform.Rotate((Vector3.up) * -mouseRotSpeed);
+        rb.velocity = new Vector3(inputDirection.x * moveSpeed * channelWalkingMultiplier, rb.velocity.y, inputDirection.z * moveSpeed * channelWalkingMultiplier);
+
+        // Horizontal rot
+        if (Input.GetAxis("Mouse X") > 0)
+            transform.Rotate(Vector3.up * mouseRotSpeed);
+        if (Input.GetAxis("Mouse X") < 0)
+            transform.Rotate(Vector3.up * -mouseRotSpeed);
+
+        // Vertical rot
+        // if (Input.GetAxis("Mouse Y") > 0)
+        //     transform.Rotate(Vector3.right * -mouseRotSpeed);
+        // if (Input.GetAxis("Mouse Y") < 0)
+        //     transform.Rotate(Vector3.right * mouseRotSpeed);
     }
 }
