@@ -18,23 +18,22 @@ public class PlayerMagicSystem : MonoBehaviour
     [SerializeField] private GameObject manaBar;
     [SerializeField] private GameObject manaBarNumber;
     private string currentCastedAbility = "";
-    public TextMeshProUGUI manaTextMesh;
     [SerializeField] private Transform castPoint;
     [SerializeField] private float maxChargeTime;
     [SerializeField] private float currChargeTime;
 
     [Header("LMB")]
-    private float LMBCooldownCurr = 0f;
     [SerializeField] private float LMBCooldownMax;
     [SerializeField] private GameObject LMBPerlinNoise;
     [SerializeField] private GameObject LMBCooldownNumber;
+    private float LMBCooldownCurr = 0f;
 
     [Header("RMB")]
-    private float RMBCooldownCurr = 0f;
     [SerializeField] private float RMBCooldownMax;
     [SerializeField] private GameObject RMBPerlinNoise;
     [SerializeField] private GameObject RMBCooldownNumber;
     [SerializeField] private GameObject RMBWheelChargeUp;
+    private float RMBCooldownCurr = 0f;
 
     private PlayerController playerController;
     public VisualEffect vfxGraph;
