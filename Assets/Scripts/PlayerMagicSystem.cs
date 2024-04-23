@@ -18,7 +18,6 @@ public class PlayerMagicSystem : MonoBehaviour
     [SerializeField] private GameObject manaBar;
     [SerializeField] private GameObject manaBarNumber;
     private string currentCastedAbility = "";
-    public TextMeshProUGUI manaTextMesh;
     [SerializeField] private Transform castPoint;
     [SerializeField] private float maxChargeTime;
     [SerializeField] private float currChargeTime;
@@ -63,7 +62,6 @@ public class PlayerMagicSystem : MonoBehaviour
 
         HandleRMBUI();
         HandleRMBSpell();
-
         HandleSpellRotation();
     }
 
@@ -147,7 +145,6 @@ public class PlayerMagicSystem : MonoBehaviour
 
                 // to instantiate charge spell animation
                 HandleEffectInstantiating();
- 
                 foreach (var col in hitColliders)
                 {
                     if (col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
@@ -159,6 +156,7 @@ public class PlayerMagicSystem : MonoBehaviour
 
                 // to destroy the animation instance
                 HandleEffectRemoval();
+                
             }
             currChargeTime = 0f;
         }
@@ -207,8 +205,9 @@ public class PlayerMagicSystem : MonoBehaviour
         RMBPerlinNoise.GetComponent<Image>().fillAmount = RMBCooldownCurr / RMBCooldownMax;
     }
 
-      // --------------------------------------- Animations ---------------------------------------
- 
+
+    // --------------------------------------- Animations ---------------------------------------
+
     void UpdateEffectSize()
     {
         float normalizedCharge = Mathf.Clamp01(currChargeTime/maxChargeTime);
@@ -216,9 +215,9 @@ public class PlayerMagicSystem : MonoBehaviour
         float size = 30f*currChargeTime;
         vfxGraph.SetFloat("EffectSize", size);   
         vfxGraph.SetFloat("LifeTime", currChargeTime); 
- 
+
     }
- 
+
     void HandleSpellRotation()
     {
         if(activeEffectInstance !=null)
@@ -226,9 +225,9 @@ public class PlayerMagicSystem : MonoBehaviour
             activeEffectInstance.transform.rotation = Quaternion.identity;
         }
     }
- 
+
     // --------------------------------------- Misc ---------------------------------------
- 
+
     void HandleEffectInstantiating()
     {
         if(activeEffectInstance == null)
