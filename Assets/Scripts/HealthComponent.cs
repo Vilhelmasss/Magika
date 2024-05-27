@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HealthComponent : MonoBehaviour
@@ -36,8 +37,16 @@ public class HealthComponent : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Destroy(this.gameObject);
-
+            
+            if(this.gameObject.layer == 3)
+            {
+                Destroy(this.gameObject);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+            }
+            else
+            {
+                Destroy(this.gameObject);
+            }
         }
     }
 }
