@@ -34,6 +34,8 @@ public class HealthComponent : MonoBehaviour
         }
     }
 
+
+
     private void UpdateUI()
     {
         if (LayerMask.NameToLayer("Player") == gameObject.layer)
@@ -60,13 +62,18 @@ public class HealthComponent : MonoBehaviour
         return currentHealth;
     }
 
+    public float GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
     public void TakeDamage(float damageToApply)
     {
         currentHealth -= damageToApply;
 
         if (currentHealth <= 0)
         {
-
+            
             if (this.gameObject.layer == 3)
             {
                 Destroy(this.gameObject);

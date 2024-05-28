@@ -12,9 +12,9 @@ public class Spell : MonoBehaviour
 
     private void Awake()
     {
-        myCollider=GetComponent<SphereCollider>();
+        myCollider = GetComponent<SphereCollider>();
         myCollider.isTrigger = true;
-        myCollider.radius=SpellToCast.SpellRadius;
+        myCollider.radius = SpellToCast.SpellRadius;
 
         myRigidBody = GetComponent<Rigidbody>();
         myRigidBody.isKinematic = true;
@@ -25,9 +25,9 @@ public class Spell : MonoBehaviour
     }
     private void Update()
     {
-        if(SpellToCast.Speed > 0)
+        if (SpellToCast.Speed > 0)
         {
-            transform.Translate(Vector3.forward * SpellToCast.Speed*Time.deltaTime);
+            transform.Translate(Vector3.forward * SpellToCast.Speed * Time.deltaTime);
         }
     }
 
@@ -36,12 +36,13 @@ public class Spell : MonoBehaviour
         //apply hit particles
         //apply  spell effects
         //apply sounds
-        if(other.gameObject.CompareTag("Enemy"))
+        if (other.gameObject.CompareTag("Enemy"))
         {
             HealthComponent enemyHealth = other.GetComponent<HealthComponent>();
             enemyHealth.TakeDamage(SpellToCast.DamageAmmount);
+            Destroy(this.gameObject);
+
 
         }
-        Destroy(this.gameObject);
     }
 }
