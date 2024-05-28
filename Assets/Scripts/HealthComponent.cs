@@ -18,14 +18,19 @@ public class HealthComponent : MonoBehaviour
     private void Awake()
     {
         currentHealth = maxHealth;
-        healthSlider.value = healthSlider.maxValue = maxHealth;
-        easeHealthSlider.maxValue = healthSlider.maxValue;
+        if (gameObject.layer != 3)
+        {
+            healthSlider.value = healthSlider.maxValue = maxHealth;
+            easeHealthSlider.maxValue = healthSlider.maxValue;
+        }
     }
 
     void Update()
     {
         UpdateUI();
-        UpdateHealthBar();
+        if (gameObject.layer != 3) {
+            UpdateHealthBar();
+        }
     }
 
     private void UpdateUI()
@@ -38,12 +43,12 @@ public class HealthComponent : MonoBehaviour
     }
     private void UpdateHealthBar()
     {
-        if(healthSlider.value != currentHealth)
+        if (healthSlider.value != currentHealth)
         {
             healthSlider.value = currentHealth;
-            
+
         }
-        if(healthSlider.value != easeHealthSlider.value)
+        if (healthSlider.value != easeHealthSlider.value)
         {
             easeHealthSlider.value = Mathf.Lerp(easeHealthSlider.value, currentHealth, lerpSpeed);
         }
@@ -60,8 +65,8 @@ public class HealthComponent : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            
-            if(this.gameObject.layer == 3)
+
+            if (this.gameObject.layer == 3)
             {
                 Destroy(this.gameObject);
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);

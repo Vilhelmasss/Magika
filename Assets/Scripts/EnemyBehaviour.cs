@@ -19,7 +19,7 @@ public class EnemyBehaviour : MonoBehaviour
     private float inIdleCurr = 0f;
     private float inAttackMax = 3f;
     private float inAttackCurr = 0f;
-
+    // private float 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -209,13 +209,14 @@ public class EnemyBehaviour : MonoBehaviour
     {
         currentState = EnemyState.Dead;
         agent.enabled = false;
+        // rb.isKinematic = false;
         CapsuleCollider capsule = GetComponent<CapsuleCollider>();
 
-        capsule.height = 0f;
-        capsule.radius = 0f;
+        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z);
+        capsule.height = 0.5f;
+        capsule.radius = 0.5f;
 
-        rb.isKinematic = false;
-        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+        rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
         animator.SetTrigger("Death");
     }
 

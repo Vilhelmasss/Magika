@@ -51,10 +51,10 @@ VisualEffect:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_Value: 0.19077559
+      - m_Value: 1.1860216
         m_Name: LifeTime
         m_Overridden: 1
-      - m_Value: 5.7232676
+      - m_Value: 35.580647
         m_Name: EffectSize
         m_Overridden: 1
     m_Vector2f:
