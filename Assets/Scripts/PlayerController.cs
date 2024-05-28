@@ -79,7 +79,6 @@ public class PlayerController : MonoBehaviour
     void CheckGround()
     {
         Collider[] hitColliders = Physics.OverlapSphere(testVector, 0.1f, ~7);
-        Debug.Log($"Colliders: {currentState}");
         if (hitColliders.Length > 0)
         {
             isTouchingGround = true;
