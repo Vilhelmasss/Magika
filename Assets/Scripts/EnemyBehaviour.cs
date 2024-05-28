@@ -211,10 +211,8 @@ public class EnemyBehaviour : MonoBehaviour
         agent.enabled = false;
         // rb.isKinematic = false;
         CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        capsule.enabled = false;
 
-        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z);
-        capsule.height = 0.5f;
-        capsule.radius = 0.5f;
 
         rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
         animator.SetTrigger("Death");

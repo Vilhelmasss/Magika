@@ -15,12 +15,13 @@ public class HealthComponent : MonoBehaviour
     public Slider easeHealthSlider;
     private float lerpSpeed = 0.005f;
 
-    private void Awake()
+    private void Start()
     {
         currentHealth = maxHealth;
         if (gameObject.layer != 3)
         {
-            healthSlider.value = healthSlider.maxValue = maxHealth;
+            healthSlider.value = maxHealth;
+            healthSlider.maxValue = maxHealth;
             easeHealthSlider.maxValue = healthSlider.maxValue;
         }
     }
