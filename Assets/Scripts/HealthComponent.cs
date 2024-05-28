@@ -11,15 +11,21 @@ public class HealthComponent : MonoBehaviour
     [SerializeField] private float currentHealth;
     [SerializeField] private GameObject healthBar;
     [SerializeField] private GameObject healthBarNumber;
+    public Slider healthSlider;
+    public Slider easeHealthSlider;
+    private float lerpSpeed = 0.005f;
 
     private void Awake()
     {
         currentHealth = maxHealth;
+        healthSlider.value = healthSlider.maxValue = maxHealth;
+        easeHealthSlider.maxValue = healthSlider.maxValue;
     }
 
     void Update()
     {
         UpdateUI();
+        UpdateHealthBar();
     }
 
     private void UpdateUI()
@@ -28,6 +34,18 @@ public class HealthComponent : MonoBehaviour
         {
             healthBar.GetComponent<Image>().fillAmount = currentHealth / maxHealth;
             healthBarNumber.GetComponent<TextMeshProUGUI>().text = currentHealth.ToString("F0");
+        }
+    }
+    private void UpdateHealthBar()
+    {
+        if(healthSlider.value != currentHealth)
+        {
+            healthSlider.value = currentHealth;
+            
+        }
+        if(healthSlider.value != easeHealthSlider.value)
+        {
+            easeHealthSlider.value = Mathf.Lerp(easeHealthSlider.value, currentHealth, lerpSpeed);
         }
     }
 
