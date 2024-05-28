@@ -49,6 +49,11 @@ public class HealthComponent : MonoBehaviour
         }
     }
 
+    public float GetHealth()
+    {
+        return currentHealth;
+    }
+
     public void TakeDamage(float damageToApply)
     {
         currentHealth -= damageToApply;
@@ -63,8 +68,9 @@ public class HealthComponent : MonoBehaviour
             }
             else
             {
-                Destroy(this.gameObject);
+
             }
         }
+        UpdateUI();
     }
 }

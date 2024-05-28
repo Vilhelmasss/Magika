@@ -14,9 +14,12 @@ public class EnemyBehaviour : MonoBehaviour
     private float moveAwayRandom = 30f;
     // Start is called before the first frame update
     private float patrolSpeed = 2f;
-    private float chaseSpeed = 3.5f;
+    private float chaseSpeed = 6f;
     private float inIdleMax = 10f;
     private float inIdleCurr = 0f;
+    private float inAttackMax = 3f;
+    private float inAttackCurr = 0f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -31,46 +34,52 @@ public class EnemyBehaviour : MonoBehaviour
         FindNewMoveToPosition();
     }
 
-    // Update is called once per frame
     Vector3 FindClosestNavMeshPosition(Vector3 sourcePosition, float maxSearchDistance)
     {
         NavMeshHit hit;
-        // Use NavMesh.SamplePosition to find the nearest point on the navmesh within maxSearchDistance
+
         if (NavMesh.SamplePosition(sourcePosition, out hit, maxSearchDistance, NavMesh.AllAreas))
         {
-            // Return the position of the hit
             return hit.position;
         }
         else
         {
-            // If no point is found, return the original source position (or handle it appropriately)
             Debug.LogWarning("No valid NavMesh position found within the given distance.");
             return sourcePosition;
         }
     }
     void Update()
     {
+        Debug.Log($"Current State: {currentState}");
         switch (currentState)
         {
             case EnemyState.Patrol:
+                if (CheckHealth())
+                    return;
                 StatePatrol();
                 break;
+
             case EnemyState.Idle:
+                if (CheckHealth())
+                    return;
                 StateIdle();
                 break;
 
             case EnemyState.Chase:
-                agent.speed = chaseSpeed;
-                agent.destination = PlayerController.Instance.transform.position;
+                if (CheckHealth())
+                    return;
+                StateChase();
+                break;
+
+            case EnemyState.Attack:
+                if (CheckHealth())
+                    return;
+                StateAttack();
                 break;
 
             case EnemyState.Dead:
                 StateDeath();
                 break;
-
-            case EnemyState.Attack:
-                break;
-
 
             default:
                 break;
@@ -78,9 +87,19 @@ public class EnemyBehaviour : MonoBehaviour
 
     }
 
+// ------------------ STATE ACTIONS START ------------------
+
     private void StatePatrol()
     {
+        CheckHealth();
         agent.destination = patrolToPosition;
+
+        if (DistanceToPlayer() <= 15f)
+        {
+            Debug.Log("Should be chasing");
+            ChangeToStateChase();
+        }
+
         float distanceToPatrolPosition = Vector3.Distance(patrolToPosition, gameObject.transform.position);
         if (distanceToPatrolPosition <= 2f)
         {
@@ -91,6 +110,13 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void StateIdle()
     {
+
+        if (DistanceToPlayer() <= 15f)
+        {
+            Debug.Log("Should be chasing");
+            ChangeToStateChase();
+        }
+
         inIdleCurr -= Time.deltaTime;
         if (inIdleCurr <= 0)
         {
@@ -103,6 +129,50 @@ public class EnemyBehaviour : MonoBehaviour
 
     }
 
+    private void StateChase()
+    {
+        CheckHealth();
+
+        agent.destination = PlayerController.Instance.transform.position;
+
+        // float distance = Vector3.Distance(gameObject.transform.position, PlayerController.Instance.transform.position);
+        if (DistanceToPlayer() <= 2f)
+        {
+            ChangeToStateAttack();
+        }
+        if (DistanceToPlayer() >= 16f)
+        {
+            ChangeToStatePatrol();
+        }
+    }
+
+    private void StateAttack()
+    {
+        CheckHealth();
+
+        inAttackCurr -= Time.deltaTime;
+
+        if (inAttackCurr <= 0)
+        {
+            // float distance = Vector3.Distance(gameObject.transform.position, PlayerController.Instance.transform.position);
+            float distance = DistanceToPlayer();
+            if (distance <= 4f)
+            {
+                PlayerController.Instance.GetComponent<HealthComponent>().TakeDamage(10f);
+            }
+            if (distance <= 2f)
+            {
+                ChangeToStateAttack();
+                return;
+            }
+            ChangeToStateChase();
+        }
+    }
+
+// ------------------ STATE ACTIONS END ------------------
+
+
+// ------------------ CHANGE STATE START ------------------
     private void ChangeToStatePatrol()
     {
         FindNewMoveToPosition();
@@ -120,12 +190,27 @@ public class EnemyBehaviour : MonoBehaviour
         animator.SetTrigger("Taunt");
     }
 
+    private void ChangeToStateChase()
+    {
+        agent.speed = chaseSpeed;
+        animator.SetTrigger("Chase");
+        currentState = EnemyState.Chase;
+    }
+
+    private void ChangeToStateAttack()
+    {
+        inAttackCurr = inAttackMax;
+        agent.speed = 0.1f;
+        animator.SetTrigger("Attack");
+        currentState = EnemyState.Attack;
+    }
+
     private void ChangeToStateDeath()
     {
         currentState = EnemyState.Dead;
         agent.enabled = false;
         CapsuleCollider capsule = GetComponent<CapsuleCollider>();
-        
+
         capsule.height = 0f;
         capsule.radius = 0f;
 
@@ -134,8 +219,31 @@ public class EnemyBehaviour : MonoBehaviour
         animator.SetTrigger("Death");
     }
 
+// ------------------ CHANGE STATE END ------------------
+
+
+// ------------------ UTILITY START ------------------
+    private bool CheckHealth()
+    {
+        if (gameObject.GetComponent<HealthComponent>() is null)
+            return false;
+        if (gameObject.GetComponent<HealthComponent>().GetHealth() <= 0)
+        {
+            ChangeToStateDeath();
+            return true;
+        }
+        return false;
+    }
+
     private void FindNewMoveToPosition()
     {
         patrolToPosition = FindClosestNavMeshPosition(startingPosition + new Vector3(Random.Range(0f, moveAwayRandom), 0f, Random.Range(0f, moveAwayRandom)), 10f);
     }
+
+    private float DistanceToPlayer()
+    {
+        return Vector3.Distance(gameObject.transform.position, PlayerController.Instance.transform.position);
+    }
+
+// ------------------ UTILITY END ------------------
 }
