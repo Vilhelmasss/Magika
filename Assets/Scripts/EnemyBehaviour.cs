@@ -4,8 +4,10 @@ using UnityEngine;
 using UnityEngine.AI;
 public class EnemyBehaviour : MonoBehaviour
 {
-    public enum EnemyState { Idle, Patrol, Chase, Attack, Dead };
-    EnemyState currentState;
+    public enum EnemyState { Idle, Patrol, Chase, Attack, Heal, Dead };
+    public EnemyState currentState;
+    public GameObject healingObject;
+    public bool isDead = false;
     private NavMeshAgent agent;
     private Rigidbody rb;
     private Vector3 startingPosition;
@@ -77,6 +79,10 @@ public class EnemyBehaviour : MonoBehaviour
                 StateAttack();
                 break;
 
+            case EnemyState.Heal:
+                StateHeal();
+                break;
+
             case EnemyState.Dead:
                 StateDeath();
                 break;
@@ -87,7 +93,7 @@ public class EnemyBehaviour : MonoBehaviour
 
     }
 
-// ------------------ STATE ACTIONS START ------------------
+    // ------------------ STATE ACTIONS START ------------------
 
     private void StatePatrol()
     {
@@ -148,7 +154,6 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void StateAttack()
     {
-        CheckHealth();
 
         inAttackCurr -= Time.deltaTime;
 
@@ -169,17 +174,34 @@ public class EnemyBehaviour : MonoBehaviour
         }
     }
 
-// ------------------ STATE ACTIONS END ------------------
+    private void StateHeal()
+    {
+        CheckHealth();
+        float distance = Vector3.Distance(healingObject.transform.position, gameObject.transform.position);
+        if (distance <= 5f)
+            agent.destination = healingObject.transform.position;
+        else
+        {
+            animator.SetTrigger("Walking");
+            // if(GetComponent<>)
+        }
+        if (GetComponent<HealthComponent>().GetHealth() >= GetComponent<HealthComponent>().GetMaxHealth())
+        {
+            ChangeToStatePatrol();
+        }
+
+    }
+
+    // ------------------ STATE ACTIONS END ------------------
 
 
-// ------------------ CHANGE STATE START ------------------
+    // ------------------ CHANGE STATE START ------------------
     private void ChangeToStatePatrol()
     {
         FindNewMoveToPosition();
         currentState = EnemyState.Patrol;
         animator.SetTrigger("Walking");
         agent.speed = patrolSpeed;
-
     }
 
     private void ChangeToStateIdle()
@@ -205,6 +227,14 @@ public class EnemyBehaviour : MonoBehaviour
         currentState = EnemyState.Attack;
     }
 
+    private void ChangeToSateHealing()
+    {
+        animator.SetTrigger("Chase");
+        agent.speed = chaseSpeed;
+        currentState = EnemyState.Heal;
+        agent.destination = healingObject.transform.position;
+    }
+
     private void ChangeToStateDeath()
     {
         currentState = EnemyState.Dead;
@@ -218,19 +248,28 @@ public class EnemyBehaviour : MonoBehaviour
         animator.SetTrigger("Death");
     }
 
-// ------------------ CHANGE STATE END ------------------
+    // ------------------ CHANGE STATE END ------------------
 
 
-// ------------------ UTILITY START ------------------
+    // ------------------ UTILITY START ------------------
     private bool CheckHealth()
     {
         if (gameObject.GetComponent<HealthComponent>() is null)
             return false;
+
+
+
         if (gameObject.GetComponent<HealthComponent>().GetHealth() <= 0)
         {
             ChangeToStateDeath();
             return true;
         }
+
+        if (gameObject.GetComponent<HealthComponent>().GetHealth() / gameObject.GetComponent<HealthComponent>().GetMaxHealth() <= 0.7f)
+        {
+            ChangeToSateHealing();
+        }
+
         return false;
     }
 
@@ -244,5 +283,5 @@ public class EnemyBehaviour : MonoBehaviour
         return Vector3.Distance(gameObject.transform.position, PlayerController.Instance.transform.position);
     }
 
-// ------------------ UTILITY END ------------------
+    // ------------------ UTILITY END ------------------
 }
